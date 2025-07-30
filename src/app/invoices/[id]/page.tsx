@@ -28,11 +28,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
+  const { id } = params;
 
   useEffect(() => {
+    if (!id) return;
     const fetchInvoice = async () => {
       setLoading(true);
-      const docRef = doc(db, 'invoices', params.id);
+      const docRef = doc(db, 'invoices', id);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
@@ -44,7 +46,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     };
 
     fetchInvoice();
-  }, [params.id]);
+  }, [id]);
   
   const handlePrint = () => {
     window.print();
