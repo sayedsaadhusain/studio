@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Invoice } from '@/lib/types';
@@ -32,7 +32,7 @@ type InvoicePageProps = {
 export default function InvoiceDetailPage({ params }: InvoicePageProps) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
-  const { id } = use(Promise.resolve(params));
+  const { id } = params;
 
 
   useEffect(() => {
