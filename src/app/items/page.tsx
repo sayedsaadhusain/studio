@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusCircle } from 'lucide-react';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/page-header';
@@ -25,27 +26,51 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-import { mockItems } from '@/lib/mock-data';
 import type { Item } from '@/lib/types';
+import { db } from '@/lib/firebase';
 import { Card, CardContent } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ItemsPage() {
-  const [items, setItems] = useState<Item[]>(mockItems);
+  const [items, setItems] = useState<Item[]>([]);
   const [open, setOpen] = useState(false);
+  const { toast } = useToast();
 
-  // In a real app, this would be a form with validation
-  const handleAddItem = (event: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    const fetchItems = async () => {
+      const querySnapshot = await getDocs(collection(db, "items"));
+      const itemsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Item[];
+      setItems(itemsData);
+    };
+    fetchItems();
+  }, []);
+
+  const handleAddItem = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const newItem: Item = {
-      id: (items.length + 1).toString(),
+    const newItemData = {
       name: formData.get('name') as string,
       price: Number(formData.get('price')),
       hsnCode: formData.get('hsnCode') as string,
       gstPercentage: Number(formData.get('gst')),
     };
-    setItems([...items, newItem]);
-    setOpen(false); // Close the dialog
+    
+    try {
+      const docRef = await addDoc(collection(db, "items"), newItemData);
+      setItems([...items, { id: docRef.id, ...newItemData }]);
+      toast({
+        title: "Item Added",
+        description: `${newItemData.name} has been successfully added.`,
+      })
+      setOpen(false);
+    } catch (e) {
+      console.error("Error adding document: ", e);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'There was an error adding the item. Please try again.',
+      });
+    }
   };
 
   return (

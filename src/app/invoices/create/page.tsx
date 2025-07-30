@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import PageHeader from '@/components/page-header';
@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mockParties, mockItems, mockInvoices } from '@/lib/mock-data';
 import type { Party, Item, InvoiceItem } from '@/lib/types';
 import { DatePicker } from '@/components/ui/date-picker';
 import {
@@ -36,21 +35,38 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function CreateInvoicePage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [parties, setParties] = useState<Party[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
   const [partyId, setPartyId] = useState<string | undefined>();
   const [invoiceDate, setInvoiceDate] = useState<Date | undefined>(new Date());
   const [dueDate, setDueDate] = useState<Date | undefined>();
-  const [items, setItems] = useState<InvoiceItem[]>([]);
+  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
 
-  const subtotal = items.reduce(
+  useEffect(() => {
+    const fetchPartiesAndItems = async () => {
+      const partiesSnapshot = await getDocs(collection(db, "parties"));
+      const partiesData = partiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Party[];
+      setParties(partiesData);
+
+      const itemsSnapshot = await getDocs(collection(db, "items"));
+      const itemsData = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Item[];
+      setItems(itemsData);
+    };
+    fetchPartiesAndItems();
+  }, []);
+
+  const subtotal = invoiceItems.reduce(
     (acc, { item, quantity }) => acc + item.price * quantity,
     0
   );
-  const gst = items.reduce(
+  const gst = invoiceItems.reduce(
     (acc, { item, quantity }) =>
       acc + (item.price * quantity * item.gstPercentage) / 100,
     0
@@ -59,37 +75,37 @@ export default function CreateInvoicePage() {
 
   const handleAddItem = () => {
     if (!selectedItemId) return;
-    const existingItem = items.find((i) => i.item.id === selectedItemId);
+    const existingItem = invoiceItems.find((i) => i.item.id === selectedItemId);
     if (existingItem) {
-      setItems(
-        items.map((i) =>
+      setInvoiceItems(
+        invoiceItems.map((i) =>
           i.item.id === selectedItemId
             ? { ...i, quantity: i.quantity + 1 }
             : i
         )
       );
     } else {
-      const itemToAdd = mockItems.find((i) => i.id === selectedItemId);
+      const itemToAdd = items.find((i) => i.id === selectedItemId);
       if (itemToAdd) {
-        setItems([...items, { item: itemToAdd, quantity: 1 }]);
+        setInvoiceItems([...invoiceItems, { item: itemToAdd, quantity: 1 }]);
       }
     }
   };
 
   const updateQuantity = (itemId: string, quantity: number) => {
     if (quantity > 0) {
-      setItems(
-        items.map((i) => (i.item.id === itemId ? { ...i, quantity } : i))
+      setInvoiceItems(
+        invoiceItems.map((i) => (i.item.id === itemId ? { ...i, quantity } : i))
       );
     }
   };
 
   const removeItem = (itemId: string) => {
-    setItems(items.filter((i) => i.item.id !== itemId));
+    setInvoiceItems(invoiceItems.filter((i) => i.item.id !== itemId));
   };
 
-  const handleSaveInvoice = () => {
-    if (!partyId || items.length === 0 || !invoiceDate) {
+  const handleSaveInvoice = async () => {
+    if (!partyId || invoiceItems.length === 0 || !invoiceDate) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
@@ -98,30 +114,38 @@ export default function CreateInvoicePage() {
       return;
     }
 
-    const party = mockParties.find((p) => p.id === partyId);
+    const party = parties.find((p) => p.id === partyId);
     if (!party) return;
+    
+    const invoiceCountSnapshot = await getDocs(collection(db, "invoices"));
+    const invoiceCount = invoiceCountSnapshot.size;
 
     const newInvoice = {
-      id: (mockInvoices.length + 1).toString(),
-      invoiceNumber: `INV-${String(mockInvoices.length + 1).padStart(3, '0')}`,
+      invoiceNumber: `INV-${String(invoiceCount + 1).padStart(3, '0')}`,
       party,
-      items,
+      partyId,
+      items: invoiceItems,
       date: invoiceDate.toISOString().split('T')[0],
       dueDate: dueDate ? dueDate.toISOString().split('T')[0] : '',
       totalAmount: total,
       status: 'Due' as const,
     };
     
-    // In a real app, you would save this to your database.
-    // We are pushing to a mock array here for demonstration.
-    mockInvoices.unshift(newInvoice);
-
-    toast({
-        title: "Invoice Created",
-        description: `Invoice ${newInvoice.invoiceNumber} has been successfully created.`,
-    })
-
-    router.push('/invoices');
+    try {
+        await addDoc(collection(db, "invoices"), newInvoice);
+        toast({
+            title: "Invoice Created",
+            description: `Invoice ${newInvoice.invoiceNumber} has been successfully created.`,
+        })
+        router.push('/invoices');
+    } catch (e) {
+        console.error("Error adding document: ", e);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'There was an error saving the invoice. Please try again.',
+        });
+    }
   };
 
   return (
@@ -149,7 +173,7 @@ export default function CreateInvoicePage() {
                         <SelectValue placeholder="Select a party" />
                         </SelectTrigger>
                         <SelectContent>
-                        {mockParties
+                        {parties
                             .filter((p) => p.type === 'Customer')
                             .map((party) => (
                             <SelectItem key={party.id} value={party.id}>
@@ -168,7 +192,7 @@ export default function CreateInvoicePage() {
                       <SelectValue placeholder="Select an item to add" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockItems.map((item) => (
+                      {items.map((item) => (
                         <SelectItem key={item.id} value={item.id}>
                           {item.name} (₹{item.price})
                         </SelectItem>
@@ -193,14 +217,14 @@ export default function CreateInvoicePage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {items.length === 0 && (
+                    {invoiceItems.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                           No items added yet.
                         </TableCell>
                       </TableRow>
                     )}
-                    {items.map(({ item, quantity }) => (
+                    {invoiceItems.map(({ item, quantity }) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>

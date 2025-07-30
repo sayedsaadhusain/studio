@@ -1,3 +1,4 @@
+'use client';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/page-header';
@@ -11,7 +12,6 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { mockInvoices } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -22,8 +22,24 @@ import {
 import { MoreHorizontal } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Invoice } from '@/lib/types';
+
 
 export default function InvoicesPage() {
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      const querySnapshot = await getDocs(collection(db, "invoices"));
+      const invoicesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Invoice[];
+      setInvoices(invoicesData);
+    };
+    fetchInvoices();
+  }, []);
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -54,7 +70,7 @@ export default function InvoicesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockInvoices.map((invoice) => (
+                {invoices.map((invoice) => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">
                       {invoice.invoiceNumber}

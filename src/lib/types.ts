@@ -23,6 +23,7 @@ export type Invoice = {
   id: string;
   invoiceNumber: string;
   party: Party;
+  partyId: string;
   items: InvoiceItem[];
   date: string;
   dueDate: string;
