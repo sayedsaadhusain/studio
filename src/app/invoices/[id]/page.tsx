@@ -28,7 +28,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
-  const { id } = params;
+  const id = params.id;
 
   useEffect(() => {
     if (!id) return;
