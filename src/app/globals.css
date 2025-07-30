@@ -72,21 +72,23 @@ body {
 }
 
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  .printable-area, .printable-area * {
-    visibility: visible;
+  body > :not(.printable-area) {
+    display: none;
   }
   .printable-area {
+    display: block;
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
     height: auto;
+    padding: 0;
+    margin: 0;
     border: none;
     box-shadow: none;
-    margin: 0;
-    padding: 0;
+  }
+  .print-hidden {
+    display: none;
   }
 }
+

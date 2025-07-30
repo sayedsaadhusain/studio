@@ -25,10 +25,14 @@ import Link from 'next/link';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
+type InvoicePageProps = {
+  params: { id: string };
+};
+
+export default function InvoiceDetailPage({ params }: InvoicePageProps) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
-  const { id } = params;
+  const { id } = use(Promise.resolve(params));
 
 
   useEffect(() => {
@@ -50,8 +54,24 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
   }, [id]);
   
   const handlePrint = () => {
-    window.print();
-  }
+    const printableArea = document.querySelector('.printable-area');
+    if (printableArea) {
+        // Temporarily add a class to the body to hide everything else
+        document.body.classList.add('printing');
+        // Add the printable area to a new div at the root to isolate it
+        const printContainer = document.createElement('div');
+        printContainer.classList.add('printable-area-container');
+        printContainer.appendChild(printableArea.cloneNode(true));
+        document.body.appendChild(printContainer);
+
+        window.print();
+        
+        // Cleanup after printing
+        document.body.removeChild(printContainer);
+        document.body.classList.remove('printing');
+    }
+}
+
 
   if (loading) {
     return <InvoiceSkeleton />;
@@ -75,89 +95,91 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
 
   return (
     <div className="flex flex-col gap-6">
-        <div className="flex justify-between items-center print:hidden">
+        <div className="flex justify-between items-center print-hidden">
              <Button asChild variant="outline">
                 <Link href="/invoices">
                 <ArrowLeft className="mr-2 h-4 w-4" /> Back to Invoices
                 </Link>
             </Button>
-            <Button onClick={handlePrint} className="print:hidden">
+            <Button onClick={handlePrint} className="print-hidden">
                 <Printer className="mr-2 h-4 w-4" /> Print Invoice
             </Button>
         </div>
-      <Card className="max-w-4xl mx-auto p-4 sm:p-8 printable-area">
-        <CardHeader className="p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-primary">Udhaar Vyapar</h1>
-              <p className="text-muted-foreground">123 Business St, Commerce City</p>
+      <div className="printable-area">
+        <Card className="max-w-4xl mx-auto p-4 sm:p-8">
+            <CardHeader className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                <div>
+                <h1 className="text-2xl font-bold text-primary">Udhaar Vyapar</h1>
+                <p className="text-muted-foreground">123 Business St, Commerce City</p>
+                </div>
+                <div className="text-left sm:text-right">
+                <CardTitle className="text-3xl font-bold mb-2">Invoice</CardTitle>
+                <CardDescription>
+                    <span className="font-semibold">Invoice #:</span> {invoice.invoiceNumber}
+                </CardDescription>
+                <CardDescription>
+                    <span className="font-semibold">Date:</span> {new Date(invoice.date).toLocaleDateString()}
+                </CardDescription>
+                {invoice.dueDate && (
+                    <CardDescription>
+                        <span className="font-semibold">Due Date:</span> {new Date(invoice.dueDate).toLocaleDateString()}
+                    </CardDescription>
+                )}
+                </div>
             </div>
-            <div className="text-left sm:text-right">
-              <CardTitle className="text-3xl font-bold mb-2">Invoice</CardTitle>
-              <CardDescription>
-                <span className="font-semibold">Invoice #:</span> {invoice.invoiceNumber}
-              </CardDescription>
-              <CardDescription>
-                <span className="font-semibold">Date:</span> {new Date(invoice.date).toLocaleDateString()}
-              </CardDescription>
-              {invoice.dueDate && (
-                 <CardDescription>
-                    <span className="font-semibold">Due Date:</span> {new Date(invoice.dueDate).toLocaleDateString()}
-                 </CardDescription>
-              )}
+            </CardHeader>
+            <Separator className="my-4" />
+            <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                <div>
+                <h3 className="font-semibold mb-2">Bill To:</h3>
+                <p className="font-bold">{invoice.party.name}</p>
+                <p>{invoice.party.address}</p>
+                <p>{invoice.party.phone}</p>
+                </div>
             </div>
-          </div>
-        </CardHeader>
-        <Separator className="my-4" />
-        <CardContent className="p-4 sm:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-            <div>
-              <h3 className="font-semibold mb-2">Bill To:</h3>
-              <p className="font-bold">{invoice.party.name}</p>
-              <p>{invoice.party.address}</p>
-              <p>{invoice.party.phone}</p>
-            </div>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50%]">Item</TableHead>
-                <TableHead className="text-center">Quantity</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoice.items.map(({ item, quantity }, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell className="text-center">{quantity}</TableCell>
-                  <TableCell className="text-right">Rs {item.price.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">Rs {(item.price * quantity).toFixed(2)}</TableCell>
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead className="w-[50%]">Item</TableHead>
+                    <TableHead className="text-center">Quantity</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                {invoice.items.map(({ item, quantity }, index) => (
+                    <TableRow key={index}>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell className="text-center">{quantity}</TableCell>
+                    <TableCell className="text-right">Rs {item.price.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">Rs {(item.price * quantity).toFixed(2)}</TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
 
-          <div className="flex justify-end mt-6">
-            <div className="w-full max-w-xs space-y-2">
-               <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>Rs {subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>GST</span>
-                <span>Rs {gst.toFixed(2)}</span>
-              </div>
-              <Separator />
-               <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>Rs {invoice.totalAmount.toFixed(2)}</span>
-              </div>
+            <div className="flex justify-end mt-6">
+                <div className="w-full max-w-xs space-y-2">
+                <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>Rs {subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                    <span>GST</span>
+                    <span>Rs {gst.toFixed(2)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span>Rs {invoice.totalAmount.toFixed(2)}</span>
+                </div>
+                </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
