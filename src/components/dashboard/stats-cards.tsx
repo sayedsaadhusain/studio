@@ -62,13 +62,13 @@ export function StatsCards() {
   const statsData = [
     {
       title: 'Total Sales',
-      value: `₹${stats.totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `Rs ${stats.totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: DollarSign,
       description: 'All-time sales revenue',
     },
     {
       title: 'Outstanding Amount',
-      value: `₹${stats.outstandingAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `Rs ${stats.outstandingAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: IndianRupee,
       description: 'Total amount due from customers',
     },

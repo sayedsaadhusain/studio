@@ -136,7 +136,7 @@ export default function ItemsPage() {
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.hsnCode}</TableCell>
                   <TableCell>{item.gstPercentage}%</TableCell>
-                  <TableCell className="text-right">₹{item.price.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">Rs {item.price.toFixed(2)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

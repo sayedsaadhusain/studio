@@ -194,7 +194,7 @@ export default function CreateInvoicePage() {
                     <SelectContent>
                       {items.map((item) => (
                         <SelectItem key={item.id} value={item.id}>
-                          {item.name} (₹{item.price})
+                          {item.name} (Rs {item.price})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -236,8 +236,8 @@ export default function CreateInvoicePage() {
                             min="1"
                           />
                         </TableCell>
-                        <TableCell className="text-right">₹{item.price.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">₹{(item.price * quantity).toFixed(2)}</TableCell>
+                        <TableCell className="text-right">Rs {item.price.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">Rs {(item.price * quantity).toFixed(2)}</TableCell>
                         <TableCell>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeItem(item.id)}>
                                 <Trash2 className="h-4 w-4 text-red-500"/>
@@ -275,15 +275,15 @@ export default function CreateInvoicePage() {
             <CardContent className="space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>₹{subtotal.toFixed(2)}</span>
+                <span>Rs {subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>GST</span>
-                <span>₹{gst.toFixed(2)}</span>
+                <span>Rs {gst.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>₹{total.toFixed(2)}</span>
+                <span>Rs {total.toFixed(2)}</span>
               </div>
             </CardContent>
             <CardFooter>

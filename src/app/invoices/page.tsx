@@ -79,7 +79,7 @@ export default function InvoicesPage() {
                     <TableCell>
                       {new Date(invoice.date).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>₹{invoice.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell>Rs {invoice.totalAmount.toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge
                         className={cn(

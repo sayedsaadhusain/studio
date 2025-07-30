@@ -50,7 +50,7 @@ export default function ReportsPage() {
                       <TableCell>{invoice.invoiceNumber}</TableCell>
                       <TableCell>{invoice.party.name}</TableCell>
                       <TableCell>{new Date(invoice.date).toLocaleDateString()}</TableCell>
-                      <TableCell className="text-right">₹{invoice.totalAmount.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">Rs {invoice.totalAmount.toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -83,7 +83,7 @@ export default function ReportsPage() {
                             <TableRow key={party.id}>
                                 <TableCell>{party.name}</TableCell>
                                 <TableCell>{party.type}</TableCell>
-                                <TableCell className="text-right">₹{total.toFixed(2)}</TableCell>
+                                <TableCell className="text-right">Rs {total.toFixed(2)}</TableCell>
                             </TableRow>
                         )
                     })}
@@ -112,18 +112,18 @@ export default function ReportsPage() {
                     {/* This is a simplified calculation for mock purposes */}
                     <TableRow>
                         <TableCell>5%</TableCell>
-                        <TableCell>₹1850.00</TableCell>
-                        <TableCell className="text-right">₹92.50</TableCell>
+                        <TableCell>Rs 1850.00</TableCell>
+                        <TableCell className="text-right">Rs 92.50</TableCell>
                     </TableRow>
                      <TableRow>
                         <TableCell>12%</TableCell>
-                        <TableCell>₹780.00</TableCell>
-                        <TableCell className="text-right">₹93.60</TableCell>
+                        <TableCell>Rs 780.00</TableCell>
+                        <TableCell className="text-right">Rs 93.60</TableCell>
                     </TableRow>
                      <TableRow>
                         <TableCell>18%</TableCell>
-                        <TableCell>₹200.00</TableCell>
-                        <TableCell className="text-right">₹36.00</TableCell>
+                        <TableCell>Rs 200.00</TableCell>
+                        <TableCell className="text-right">Rs 36.00</TableCell>
                     </TableRow>
                 </TableBody>
               </Table>

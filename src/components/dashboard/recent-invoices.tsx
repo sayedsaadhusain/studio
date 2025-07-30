@@ -81,7 +81,7 @@ export function RecentInvoices() {
                 <TableRow key={invoice.id}>
                   <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                   <TableCell>{invoice.party.name}</TableCell>
-                  <TableCell>₹{invoice.totalAmount.toFixed(2)}</TableCell>
+                  <TableCell>Rs {invoice.totalAmount.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge
                       className={cn(
