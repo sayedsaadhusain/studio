@@ -72,15 +72,21 @@ body {
 }
 
 @media print {
-  body > div:first-child {
-    display: none;
+  body * {
+    visibility: hidden;
   }
-
-  main > div {
-    display: none;
+  .printable-area, .printable-area * {
+    visibility: visible;
   }
-  
-  main .printable-area {
-    display: block;
+  .printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    border: none;
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
   }
 }
