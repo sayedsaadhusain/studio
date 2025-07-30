@@ -28,9 +28,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
-  const { id } = params;
 
   useEffect(() => {
+    const id = params.id;
     if (!id) return;
     const fetchInvoice = async () => {
       setLoading(true);
@@ -46,7 +46,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     };
 
     fetchInvoice();
-  }, [id]);
+  }, [params.id]);
   
   const handlePrint = () => {
     window.print();
