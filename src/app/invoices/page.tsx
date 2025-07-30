@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Link from 'next/link';
 
 export default function InvoicesPage() {
   return (
@@ -28,9 +29,11 @@ export default function InvoicesPage() {
       <PageHeader
         title="Invoices"
         action={
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Create Invoice
+          <Button asChild>
+            <Link href="/invoices/create">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Create Invoice
+            </Link>
           </Button>
         }
       />
