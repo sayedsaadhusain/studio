@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Invoice } from '@/lib/types';
@@ -28,7 +28,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
-  const { id } = use(Promise.resolve(params));
+  const { id } = params;
 
   useEffect(() => {
     if (!id) return;
