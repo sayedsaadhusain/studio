@@ -32,7 +32,7 @@ type InvoicePageProps = {
 export default function InvoiceDetailPage({ params }: InvoicePageProps) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
-  const { id } = params;
+  const { id } = use(Promise.resolve(params));
 
 
   useEffect(() => {
@@ -95,7 +95,7 @@ export default function InvoiceDetailPage({ params }: InvoicePageProps) {
             <CardHeader className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
-                <h1 className="text-2xl font-bold text-primary">Udhaar Vyapar</h1>
+                <h1 className="text-2xl font-bold text-primary">Grow Vyapar</h1>
                 <p className="text-muted-foreground">123 Business St, Commerce City</p>
                 </div>
                 <div className="text-left sm:text-right">

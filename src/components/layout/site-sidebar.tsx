@@ -25,7 +25,7 @@ export default function SiteSidebar() {
             <Package className="h-5 w-5" />
           </Button>
           <h1 className="font-headline text-lg font-semibold text-primary">
-            Udhaar Vyapar
+            Grow Vyapar
           </h1>
         </div>
       </SidebarHeader>

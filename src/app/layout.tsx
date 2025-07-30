@@ -4,11 +4,12 @@ import { Toaster } from '@/components/ui/toaster';
 import AppLayout from '@/components/layout/app-layout';
 
 export const metadata: Metadata = {
-  title: 'Udhaar Vyapar',
+  title: 'Grow Vyapar',
   description: 'Business management for Indian small businesses',
   icons: {
     icon: '/favicon.ico',
   },
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
