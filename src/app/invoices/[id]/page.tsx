@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Invoice } from '@/lib/types';
@@ -28,9 +28,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
+  const { id } = params;
+
 
   useEffect(() => {
-    const id = params.id;
     if (!id) return;
     const fetchInvoice = async () => {
       setLoading(true);
@@ -46,7 +47,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     };
 
     fetchInvoice();
-  }, [params.id]);
+  }, [id]);
   
   const handlePrint = () => {
     window.print();
