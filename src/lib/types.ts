@@ -1,9 +1,12 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export type Party = {
   id: string;
   name: string;
   phone: string;
   address: string;
   type: 'Customer' | 'Supplier';
+  createdAt: Timestamp;
 };
 
 export type Item = {

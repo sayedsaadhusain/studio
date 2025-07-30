@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PlusCircle } from 'lucide-react';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, getDocs, serverTimestamp, Timestamp } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/page-header';
@@ -54,11 +54,20 @@ export default function PartiesPage() {
       phone: formData.get('phone') as string,
       address: formData.get('address') as string,
       type: formData.get('type') as 'Customer' | 'Supplier',
+      createdAt: serverTimestamp(),
     };
 
     try {
       const docRef = await addDoc(collection(db, "parties"), newPartyData);
-      setParties([{ id: docRef.id, ...newPartyData }, ...parties]);
+      // We are creating a client-side timestamp to display immediately, 
+      // but the serverTimestamp is what gets saved.
+      const displayParty = { 
+        id: docRef.id, 
+        ...newPartyData,
+        createdAt: Timestamp.now()
+      } as unknown as Party;
+
+      setParties([{ ...displayParty }, ...parties]);
       toast({
         title: "Party Added",
         description: `${newPartyData.name} has been successfully added.`,
