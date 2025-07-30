@@ -70,3 +70,17 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  body > div:first-child {
+    display: none;
+  }
+
+  main > div {
+    display: none;
+  }
+  
+  main .printable-area {
+    display: block;
+  }
+}

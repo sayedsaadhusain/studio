@@ -8,7 +8,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
       <div className="flex min-h-screen">
         <SiteSidebar />
         <SidebarInset>
-          <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+          <main className="p-4 sm:p-6 lg:p-8">{children}</main>
         </SidebarInset>
       </div>
     </SidebarProvider>

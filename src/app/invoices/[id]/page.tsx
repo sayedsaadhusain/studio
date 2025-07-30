@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Invoice } from '@/lib/types';
@@ -28,7 +28,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
-  const id = params.id;
+  const { id } = use(Promise.resolve(params));
 
   useEffect(() => {
     if (!id) return;
@@ -74,7 +74,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
 
   return (
     <div className="flex flex-col gap-6">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center print:hidden">
              <Button asChild variant="outline">
                 <Link href="/invoices">
                 <ArrowLeft className="mr-2 h-4 w-4" /> Back to Invoices
@@ -84,7 +84,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                 <Printer className="mr-2 h-4 w-4" /> Print Invoice
             </Button>
         </div>
-      <Card className="max-w-4xl mx-auto p-4 sm:p-8">
+      <Card className="max-w-4xl mx-auto p-4 sm:p-8 printable-area">
         <CardHeader className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div>
