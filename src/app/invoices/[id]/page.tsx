@@ -32,7 +32,7 @@ type InvoicePageProps = {
 export default function InvoiceDetailPage({ params }: InvoicePageProps) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
-  const { id } = use(Promise.resolve(params));
+  const { id } = params;
 
 
   useEffect(() => {
@@ -54,23 +54,8 @@ export default function InvoiceDetailPage({ params }: InvoicePageProps) {
   }, [id]);
   
   const handlePrint = () => {
-    const printableArea = document.querySelector('.printable-area');
-    if (printableArea) {
-        // Temporarily add a class to the body to hide everything else
-        document.body.classList.add('printing');
-        // Add the printable area to a new div at the root to isolate it
-        const printContainer = document.createElement('div');
-        printContainer.classList.add('printable-area-container');
-        printContainer.appendChild(printableArea.cloneNode(true));
-        document.body.appendChild(printContainer);
-
-        window.print();
-        
-        // Cleanup after printing
-        document.body.removeChild(printContainer);
-        document.body.classList.remove('printing');
-    }
-}
+    window.print();
+  }
 
 
   if (loading) {
