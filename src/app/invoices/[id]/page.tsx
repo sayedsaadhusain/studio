@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Invoice } from '@/lib/types';
@@ -25,14 +26,11 @@ import Link from 'next/link';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-type InvoicePageProps = {
-  params: { id: string };
-};
-
-export default function InvoiceDetailPage({ params }: InvoicePageProps) {
+export default function InvoiceDetailPage() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
-  const { id } = params;
+  const params = useParams();
+  const id = params.id as string;
 
 
   useEffect(() => {
