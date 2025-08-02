@@ -8,11 +8,13 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { NAV_LINKS } from '@/lib/constants';
 import { Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 function SidebarTitle() {
     return (
@@ -31,9 +33,37 @@ function SidebarTitle() {
     )
 }
 
+const BottomNavigation = () => {
+    const pathname = usePathname();
+    return (
+        <div className="md:hidden fixed bottom-0 left-0 z-50 w-full h-16 bg-card border-t border-border">
+            <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
+                {NAV_LINKS.map(link => (
+                     <Link
+                        key={link.href}
+                        href={link.href}
+                        className={cn(
+                            "inline-flex flex-col items-center justify-center px-5 hover:bg-muted group",
+                            (link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)) ? "text-primary" : "text-muted-foreground"
+                        )}
+                     >
+                        <link.icon className="w-5 h-5 mb-1" />
+                        <span className="text-xs">{link.label}</span>
+                    </Link>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 
 export default function SiteSidebar() {
   const pathname = usePathname();
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return <BottomNavigation />;
+  }
 
   return (
     <Sidebar>
@@ -62,9 +92,6 @@ export default function SiteSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="md:hidden">
-        <SidebarTrigger />
-      </SidebarFooter>
     </Sidebar>
   );
 }
