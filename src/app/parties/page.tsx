@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { PlusCircle } from 'lucide-react';
-import { collection, addDoc, getDocs, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { PlusCircle, Trash2 } from 'lucide-react';
+import { collection, addDoc, getDocs, serverTimestamp, Timestamp, doc, deleteDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/page-header';
@@ -23,6 +23,16 @@ import {
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -35,14 +45,17 @@ import { useToast } from '@/hooks/use-toast';
 export default function PartiesPage() {
   const [parties, setParties] = useState<Party[]>([]);
   const [open, setOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [partyToDelete, setPartyToDelete] = useState<Party | null>(null);
   const { toast } = useToast();
 
+  const fetchParties = async () => {
+    const querySnapshot = await getDocs(collection(db, "parties"));
+    const partiesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Party[];
+    setParties(partiesData);
+  };
+  
   useEffect(() => {
-    const fetchParties = async () => {
-      const querySnapshot = await getDocs(collection(db, "parties"));
-      const partiesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Party[];
-      setParties(partiesData);
-    };
     fetchParties();
   }, []);
 
@@ -59,8 +72,6 @@ export default function PartiesPage() {
 
     try {
       const docRef = await addDoc(collection(db, "parties"), newPartyData);
-      // We are creating a client-side timestamp to display immediately, 
-      // but the serverTimestamp is what gets saved.
       const displayParty = { 
         id: docRef.id, 
         ...newPartyData,
@@ -80,6 +91,33 @@ export default function PartiesPage() {
         title: 'Error',
         description: 'There was an error adding the party. Please try again.',
       });
+    }
+  };
+
+  const openDeleteDialog = (party: Party) => {
+    setPartyToDelete(party);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteParty = async () => {
+    if (!partyToDelete) return;
+    try {
+      await deleteDoc(doc(db, 'parties', partyToDelete.id));
+      toast({
+        title: 'Party Deleted',
+        description: `${partyToDelete.name} has been successfully deleted.`,
+      });
+      fetchParties();
+    } catch (e) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'There was an error deleting the party.',
+      });
+      console.error('Error deleting document: ', e);
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setPartyToDelete(null);
     }
   };
 
@@ -147,6 +185,7 @@ export default function PartiesPage() {
                 <TableHead>Phone</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Address</TableHead>
+                <TableHead className="w-[50px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -156,12 +195,32 @@ export default function PartiesPage() {
                   <TableCell>{party.phone}</TableCell>
                   <TableCell>{party.type}</TableCell>
                   <TableCell>{party.address}</TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDeleteDialog(party)}>
+                        <Trash2 className="h-4 w-4 text-red-500"/>
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This will permanently delete the party "{partyToDelete?.name}". This action cannot be undone.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteParty} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 'use client';
-import { PlusCircle, MoreHorizontal, Copy } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Copy, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/page-header';
 import {
@@ -27,10 +27,20 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Invoice } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -41,6 +51,8 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const { toast } = useToast();
 
@@ -99,6 +111,27 @@ export default function InvoicesPage() {
         console.error(e);
     }
   }
+
+  const openDeleteDialog = (invoice: Invoice) => {
+    setInvoiceToDelete(invoice);
+    setIsDeleteDialogOpen(true);
+  }
+
+  const handleDeleteInvoice = async () => {
+    if (!invoiceToDelete) return;
+    try {
+        await deleteDoc(doc(db, "invoices", invoiceToDelete.id));
+        toast({ title: "Invoice Deleted", description: `Invoice ${invoiceToDelete.invoiceNumber} has been deleted.` });
+        fetchInvoices(); // Refresh the list
+    } catch (e) {
+        toast({ variant: 'destructive', title: 'Error deleting invoice' });
+        console.error("Error deleting document: ", e);
+    } finally {
+        setIsDeleteDialogOpen(false);
+        setInvoiceToDelete(null);
+    }
+  }
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -174,6 +207,10 @@ export default function InvoicesPage() {
                             <Copy className="mr-2 h-4 w-4" />
                             Share Payment Link
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openDeleteDialog(invoice)} className="text-red-600">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -210,6 +247,21 @@ export default function InvoicesPage() {
             </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This will permanently delete the invoice {invoiceToDelete?.invoiceNumber}. This action cannot be undone.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteInvoice} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
