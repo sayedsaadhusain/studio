@@ -149,7 +149,7 @@ export default function InvoicesPage() {
       />
       <Card>
         <CardContent className="p-0">
-          <ScrollArea className="h-[calc(100vh-220px)]">
+          <ScrollArea className="h-[calc(100vh-220px)] w-full">
             <Table>
               <TableHeader>
                 <TableRow>

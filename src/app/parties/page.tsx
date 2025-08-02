@@ -41,6 +41,7 @@ import type { Party } from '@/lib/types';
 import { db } from '@/lib/firebase';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function PartiesPage() {
   const [parties, setParties] = useState<Party[]>([]);
@@ -210,35 +211,37 @@ export default function PartiesPage() {
       />
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Address</TableHead>
-                <TableHead className="w-[100px] text-center">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {parties.map((party) => (
-                <TableRow key={party.id}>
-                  <TableCell className="font-medium">{party.name}</TableCell>
-                  <TableCell>{party.phone}</TableCell>
-                  <TableCell>{party.type}</TableCell>
-                  <TableCell>{party.address}</TableCell>
-                  <TableCell className="flex justify-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(party)}>
-                        <Edit className="h-4 w-4"/>
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDeleteDialog(party)}>
-                        <Trash2 className="h-4 w-4 text-red-500"/>
-                    </Button>
-                  </TableCell>
+          <ScrollArea className='w-full'>
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Address</TableHead>
+                    <TableHead className="w-[100px] text-center">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                {parties.map((party) => (
+                    <TableRow key={party.id}>
+                    <TableCell className="font-medium">{party.name}</TableCell>
+                    <TableCell>{party.phone}</TableCell>
+                    <TableCell>{party.type}</TableCell>
+                    <TableCell>{party.address}</TableCell>
+                    <TableCell className="flex justify-center gap-2">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(party)}>
+                            <Edit className="h-4 w-4"/>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDeleteDialog(party)}>
+                            <Trash2 className="h-4 w-4 text-red-500"/>
+                        </Button>
+                    </TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
+          </ScrollArea>
         </CardContent>
       </Card>
 
