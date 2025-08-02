@@ -89,7 +89,7 @@ export default function InvoiceDetailPage() {
             </Button>
         </div>
       <div className="printable-area">
-        <Card className="max-w-4xl mx-auto p-4 sm:p-8">
+        <Card className="max-w-4xl mx-auto p-4 sm:p-8 print-card">
             <CardHeader className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>

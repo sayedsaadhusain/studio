@@ -80,6 +80,9 @@ body {
 }
 
 @media print {
+  body {
+    background: none !important;
+  }
   body > :not(.printable-area) {
     display: none;
   }
@@ -92,8 +95,11 @@ body {
     height: auto;
     padding: 0;
     margin: 0;
+  }
+  .printable-area .print-card {
     border: none;
     box-shadow: none;
+    border-radius: 0;
   }
   .print-hidden {
     display: none;
