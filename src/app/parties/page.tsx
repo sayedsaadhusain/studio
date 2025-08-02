@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { PlusCircle, Trash2 } from 'lucide-react';
-import { collection, addDoc, getDocs, serverTimestamp, Timestamp, doc, deleteDoc } from 'firebase/firestore';
+import { PlusCircle, Trash2, Edit } from 'lucide-react';
+import { collection, addDoc, getDocs, serverTimestamp, Timestamp, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/page-header';
@@ -44,9 +44,10 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function PartiesPage() {
   const [parties, setParties] = useState<Party[]>([]);
-  const [open, setOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [partyToDelete, setPartyToDelete] = useState<Party | null>(null);
+  const [selectedParty, setSelectedParty] = useState<Party | null>(null);
   const { toast } = useToast();
 
   const fetchParties = async () => {
@@ -71,19 +72,13 @@ export default function PartiesPage() {
     };
 
     try {
-      const docRef = await addDoc(collection(db, "parties"), newPartyData);
-      const displayParty = { 
-        id: docRef.id, 
-        ...newPartyData,
-        createdAt: Timestamp.now()
-      } as unknown as Party;
-
-      setParties([{ ...displayParty }, ...parties]);
+      await addDoc(collection(db, "parties"), newPartyData);
       toast({
         title: "Party Added",
         description: `${newPartyData.name} has been successfully added.`,
-      })
-      setOpen(false); // Close the dialog
+      });
+      fetchParties();
+      setIsAddDialogOpen(false);
     } catch (e) {
       console.error("Error adding document: ", e);
       toast({
@@ -94,18 +89,55 @@ export default function PartiesPage() {
     }
   };
 
+  const handleEditParty = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedParty) return;
+
+    const formData = new FormData(event.currentTarget);
+    const updatedPartyData = {
+      name: formData.get('name') as string,
+      phone: formData.get('phone') as string,
+      address: formData.get('address') as string,
+      type: formData.get('type') as 'Customer' | 'Supplier',
+    };
+
+    try {
+      const docRef = doc(db, 'parties', selectedParty.id);
+      await updateDoc(docRef, updatedPartyData);
+      toast({
+        title: "Party Updated",
+        description: `${updatedPartyData.name} has been successfully updated.`,
+      });
+      fetchParties();
+      setIsEditDialogOpen(false);
+      setSelectedParty(null);
+    } catch (e) {
+      console.error("Error updating document: ", e);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'There was an error updating the party. Please try again.',
+      });
+    }
+  };
+
+  const openEditDialog = (party: Party) => {
+    setSelectedParty(party);
+    setIsEditDialogOpen(true);
+  };
+
   const openDeleteDialog = (party: Party) => {
-    setPartyToDelete(party);
+    setSelectedParty(party);
     setIsDeleteDialogOpen(true);
   };
 
   const handleDeleteParty = async () => {
-    if (!partyToDelete) return;
+    if (!selectedParty) return;
     try {
-      await deleteDoc(doc(db, 'parties', partyToDelete.id));
+      await deleteDoc(doc(db, 'parties', selectedParty.id));
       toast({
         title: 'Party Deleted',
-        description: `${partyToDelete.name} has been successfully deleted.`,
+        description: `${selectedParty.name} has been successfully deleted.`,
       });
       fetchParties();
     } catch (e) {
@@ -117,7 +149,7 @@ export default function PartiesPage() {
       console.error('Error deleting document: ', e);
     } finally {
       setIsDeleteDialogOpen(false);
-      setPartyToDelete(null);
+      setSelectedParty(null);
     }
   };
 
@@ -126,7 +158,7 @@ export default function PartiesPage() {
       <PageHeader
         title="Parties"
         action={
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -136,9 +168,9 @@ export default function PartiesPage() {
             <DialogContent>
               <form onSubmit={handleAddParty}>
                 <DialogHeader>
-                  <DialogTitle className="font-headline">Add New Party</DialogTitle>
+                  <DialogTitle>Add New Party</DialogTitle>
                 </DialogHeader>
-                <div className="grid gap-4 py-4 font-body">
+                <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="name" className="text-right">Name</Label>
                     <Input id="name" name="name" className="col-span-3" required />
@@ -185,7 +217,7 @@ export default function PartiesPage() {
                 <TableHead>Phone</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Address</TableHead>
-                <TableHead className="w-[50px]">Actions</TableHead>
+                <TableHead className="w-[100px] text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -195,7 +227,10 @@ export default function PartiesPage() {
                   <TableCell>{party.phone}</TableCell>
                   <TableCell>{party.type}</TableCell>
                   <TableCell>{party.address}</TableCell>
-                  <TableCell>
+                  <TableCell className="flex justify-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(party)}>
+                        <Edit className="h-4 w-4"/>
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDeleteDialog(party)}>
                         <Trash2 className="h-4 w-4 text-red-500"/>
                     </Button>
@@ -207,16 +242,61 @@ export default function PartiesPage() {
         </CardContent>
       </Card>
 
+      {/* Edit Party Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <form onSubmit={handleEditParty}>
+            <DialogHeader>
+              <DialogTitle>Edit Party</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">Name</Label>
+                <Input id="name" name="name" className="col-span-3" defaultValue={selectedParty?.name} required />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-right">Phone</Label>
+                <Input id="phone" name="phone" type="tel" className="col-span-3" defaultValue={selectedParty?.phone} required />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="address" className="text-right">Address</Label>
+                <Input id="address" name="address" className="col-span-3" defaultValue={selectedParty?.address} />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Type</Label>
+                <RadioGroup name="type" defaultValue={selectedParty?.type} className="col-span-3 flex gap-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Customer" id="r1-edit" />
+                    <Label htmlFor="r1-edit">Customer</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Supplier" id="r2-edit" />
+                    <Label htmlFor="r2-edit">Supplier</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                  <Button type="button" variant="secondary" onClick={() => setSelectedParty(null)}>Cancel</Button>
+              </DialogClose>
+              <Button type="submit">Save Changes</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Party Alert */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                    This will permanently delete the party "{partyToDelete?.name}". This action cannot be undone.
+                    This will permanently delete the party "{selectedParty?.name}". This action cannot be undone.
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel onClick={() => setSelectedParty(null)}>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDeleteParty} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>

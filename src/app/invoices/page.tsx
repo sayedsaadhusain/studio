@@ -1,5 +1,5 @@
 'use client';
-import { PlusCircle, MoreHorizontal, Copy, Trash2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Copy, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/page-header';
 import {
@@ -18,6 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
@@ -202,12 +203,19 @@ export default function InvoicesPage() {
                           <DropdownMenuItem asChild>
                             <Link href={`/invoices/${invoice.id}`}>View Invoice</Link>
                           </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/invoices/edit/${invoice.id}`}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openPaymentDialog(invoice)}>Record Payment</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleShareLink(invoice.id)}>
                             <Copy className="mr-2 h-4 w-4" />
                             Share Payment Link
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openDeleteDialog(invoice)} className="text-red-600">
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openDeleteDialog(invoice)} className="text-red-600 focus:text-red-600 focus:bg-red-50">
                               <Trash2 className="mr-2 h-4 w-4" />
                               Delete
                           </DropdownMenuItem>
